@@ -35,8 +35,12 @@
         
         <!-- Contenedor del Formulario -->
         <div id="contenedorFormulario">
-            <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">Registro de Asistentes</h1>
-            <p class="text-center text-gray-500 mb-8">Completa tus datos para registrarte en el evento.</p>
+            <!-- Logo Agregado -->
+            <div class="flex justify-center mb-6">
+                <img src="redMB.png" alt="Logo RedMB" class="h-20" onerror="this.style.display='none'">
+            </div>
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">Registro de Asistencia</h1>
+            <p class="text-center text-gray-500 mb-8">2do Congreso celular 2025</p>
             
             <form id="registroForm" class="space-y-6">
                 <div>
@@ -77,8 +81,8 @@
         
         <!-- Contenedor del Código QR -->
         <div id="contenedorQR" class="mt-10 pt-6 border-t border-gray-200">
-            <h2 class="text-xl font-semibold text-center text-gray-700">Comparte este Formulario</h2>
-            <p class="text-center text-gray-500 mb-4">Escanea el código QR para acceder al formulario de registro.</p>
+            <h2 class="text-xl font-semibold text-center text-gray-700">Compartir registro</h2>
+            <p class="text-center text-gray-500 mb-4">Escanea el código QR para acceder al registro.</p>
             <div id="qrcode" class="flex justify-center"></div>
         </div>
 
@@ -90,15 +94,12 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ------------------ PASO 1: CONFIGURACIÓN DE FIREBASE ------------------
-        // ¡IMPORTANTE! Pega aquí el objeto de configuración de tu proyecto de Firebase.
-        // Lo encuentras en tu consola de Firebase > Configuración del proyecto (el ícono de engrane) > General > Tus apps > SDK de configuración de Firebase.
-
+        // ------------------ CONFIGURACIÓN DE FIREBASE ------------------
         const firebaseConfig = {
             apiKey: "AIzaSyAWJK3mAcb7IzLRrVfO1a7lz0bXbYdcA28",
             authDomain: "congresocelular2.firebaseapp.com",
             projectId: "congresocelular2",
-            storageBucket: "congresocelular2.firebasestorage.app",
+            storageBucket: "congresocelular2.appspot.com",
             messagingSenderId: "599175012929",
             appId: "1:599175012929:web:75f2618639b7df036a5cc0",
             measurementId: "G-VN6FQ50793"
@@ -111,11 +112,13 @@
             db = getFirestore(app);
             console.log("Firebase inicializado correctamente.");
         } catch (e) {
-            console.error("Error al inicializar Firebase. Asegúrate de pegar tu 'firebaseConfig'.", e);
-            document.getElementById('contenedorFormulario').innerHTML = '<p class="text-center text-red-500 font-semibold">Error de configuración. El formulario no puede funcionar sin la conexión a la base de datos. Revisa las instrucciones.</p>';
+            console.error("Error al inicializar Firebase.", e);
+            document.getElementById('contenedorFormulario').innerHTML = '<p class="text-center text-red-500 font-semibold">Error de configuración. El formulario no puede funcionar sin la conexión a la base de datos.</p>';
         }
 
         // --- Generación del Código QR ---
+        // Se genera el QR con la URL de la página actual. Si se ejecuta localmente, puede que no funcione correctamente.
+        // Es mejor probarlo una vez que esté subido a Vercel.
         const urlActual = window.location.href;
         new QRCode(document.getElementById("qrcode"), {
             text: urlActual,
@@ -156,9 +159,9 @@
                 document.getElementById('contenedorFormulario').classList.add('hidden');
                 document.getElementById('contenedorExito').classList.remove('hidden');
                 
-                // ------------------ PASO 2: PERSONALIZAR MENSAJE DE WHATSAPP ------------------
+                // ------------------ PERSONALIZAR MENSAJE DE WHATSAPP ------------------
                 const telefonoConPrefijo = `52${registro.telefono}`; // IMPORTANTE: '52' es el prefijo de México. Ajústalo a tu país.
-                const mensaje = `¡Hola ${registro.nombre}! 👋 Tu registro para el evento ha sido exitoso. ¡Estamos muy contentos de tenerte con nosotros! Aquí tienes la imagen de bienvenida: [https://www.canva.com/design/DAGvadRQ78I/kpGAxGh9Z-2ngBaIcp6gtw/view?utm_content=DAGvadRQ78I&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h1bf85dcf22]`;
+                const mensaje = `¡Hola ${registro.nombre}! 👋 Tu registro para el 2do Congreso Celular 2025 ha sido exitoso. ¡Estamos muy contentos de tenerte con nosotros!`;
                 
                 const mensajeCodificado = encodeURIComponent(mensaje);
                 const whatsappURL = `https://wa.me/${telefonoConPrefijo}?text=${mensajeCodificado}`;
