@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Registro para Evento</title>
+    <!-- Tailwind CSS para un diseño moderno y adaptable -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Biblioteca para generar el código QR -->
+    <script src="https://cdn.jsdelivr.net/gh/davidshimjs/qrcodejs/qrcode.min.js"></script>
+    <!-- Google Fonts para una tipografía agradable -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* Estilo para el spinner de carga */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-xl p-8 space-y-8">
+        
+        <!-- Contenedor del Formulario -->
+        <div id="contenedorFormulario">
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">Registro de Asistentes</h1>
+            <p class="text-center text-gray-500 mb-8">Completa tus datos para registrarte en el evento.</p>
+            
+            <form id="registroForm" class="space-y-6">
+                <div>
+                    <label for="iglesia" class="block text-sm font-medium text-gray-700">Iglesia</label>
+                    <input type="text" id="iglesia" name="iglesia" required class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="ciudad" class="block text-sm font-medium text-gray-700">Ciudad</label>
+                    <input type="text" id="ciudad" name="ciudad" required class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre Completo</label>
+                    <input type="text" id="nombre" name="nombre" required class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="cargo" class="block text-sm font-medium text-gray-700">Cargo (Pastor, Líder, etc.)</label>
+                    <input type="text" id="cargo" name="cargo" required class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <label for="telefono" class="block text-sm font-medium text-gray-700">Teléfono (WhatsApp)</label>
+                    <input type="tel" id="telefono" name="telefono" placeholder="Ej: 5512345678" required class="mt-1 block w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                </div>
+                <div>
+                    <button type="submit" id="submitButton" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors">
+                        <span id="buttonText">Registrarme</span>
+                        <div id="buttonLoader" class="loader hidden"></div>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Contenedor de Éxito y QR -->
+        <div id="contenedorExito" class="hidden text-center">
+            <h2 class="text-2xl font-bold text-green-600">¡Registro Exitoso!</h2>
+            <p class="text-gray-600 mt-2">Gracias por registrarte. Serás redirigido a WhatsApp para confirmar.</p>
+            <p class="text-gray-500 mt-4 text-sm">Si la redirección no funciona, puedes escanear el código QR en la pantalla de bienvenida para volver a esta página.</p>
+        </div>
+        
+        <!-- Contenedor del Código QR -->
+        <div id="contenedorQR" class="mt-10 pt-6 border-t border-gray-200">
+            <h2 class="text-xl font-semibold text-center text-gray-700">Comparte este Formulario</h2>
+            <p class="text-center text-gray-500 mb-4">Escanea el código QR para acceder al formulario de registro.</p>
+            <div id="qrcode" class="flex justify-center"></div>
+        </div>
+
+    </div>
+
+    <!-- Firebase -->
+    <script type="module">
+        // Importa las funciones que necesitas de los SDKs de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ------------------ PASO 1: CONFIGURACIÓN DE FIREBASE ------------------
+        // ¡IMPORTANTE! Pega aquí el objeto de configuración de tu proyecto de Firebase.
+        // Lo encuentras en tu consola de Firebase > Configuración del proyecto (el ícono de engrane) > General > Tus apps > SDK de configuración de Firebase.
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAWJK3mAcb7IzLRrVfO1a7lz0bXbYdcA28",
+            authDomain: "congresocelular2.firebaseapp.com",
+            projectId: "congresocelular2",
+            storageBucket: "congresocelular2.firebasestorage.app",
+            messagingSenderId: "599175012929",
+            appId: "1:599175012929:web:75f2618639b7df036a5cc0",
+            measurementId: "G-VN6FQ50793"
+        };
+
+        // Inicializa Firebase
+        let app, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            console.log("Firebase inicializado correctamente.");
+        } catch (e) {
+            console.error("Error al inicializar Firebase. Asegúrate de pegar tu 'firebaseConfig'.", e);
+            document.getElementById('contenedorFormulario').innerHTML = '<p class="text-center text-red-500 font-semibold">Error de configuración. El formulario no puede funcionar sin la conexión a la base de datos. Revisa las instrucciones.</p>';
+        }
+
+        // --- Generación del Código QR ---
+        const urlActual = window.location.href;
+        new QRCode(document.getElementById("qrcode"), {
+            text: urlActual,
+            width: 200,
+            height: 200,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+
+        // --- Lógica del Formulario ---
+        const form = document.getElementById('registroForm');
+        const submitButton = document.getElementById('submitButton');
+        const buttonText = document.getElementById('buttonText');
+        const buttonLoader = document.getElementById('buttonLoader');
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault(); 
+
+            buttonText.classList.add('hidden');
+            buttonLoader.classList.remove('hidden');
+            submitButton.disabled = true;
+
+            const registro = {
+                iglesia: form.iglesia.value,
+                ciudad: form.ciudad.value,
+                nombre: form.nombre.value,
+                cargo: form.cargo.value,
+                telefono: form.telefono.value,
+                fechaRegistro: new Date().toISOString()
+            };
+
+            try {
+                // Guardar los datos en una colección de Firestore llamada "registros"
+                const docRef = await addDoc(collection(db, "registros"), registro);
+                console.log("Documento escrito con ID: ", docRef.id);
+
+                document.getElementById('contenedorFormulario').classList.add('hidden');
+                document.getElementById('contenedorExito').classList.remove('hidden');
+                
+                // ------------------ PASO 2: PERSONALIZAR MENSAJE DE WHATSAPP ------------------
+                const telefonoConPrefijo = `52${registro.telefono}`; // IMPORTANTE: '52' es el prefijo de México. Ajústalo a tu país.
+                const mensaje = `¡Hola ${registro.nombre}! 👋 Tu registro para el evento ha sido exitoso. ¡Estamos muy contentos de tenerte con nosotros! Aquí tienes la imagen de bienvenida: [https://www.canva.com/design/DAGvadRQ78I/kpGAxGh9Z-2ngBaIcp6gtw/view?utm_content=DAGvadRQ78I&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h1bf85dcf22]`;
+                
+                const mensajeCodificado = encodeURIComponent(mensaje);
+                const whatsappURL = `https://wa.me/${telefonoConPrefijo}?text=${mensajeCodificado}`;
+
+                setTimeout(() => {
+                    window.location.href = whatsappURL;
+                }, 3000);
+
+            } catch (error) {
+                console.error("Error al añadir el documento: ", error);
+                alert("Hubo un error al guardar tu registro. Por favor, inténtalo de nuevo.");
+                buttonText.classList.remove('hidden');
+                buttonLoader.classList.add('hidden');
+                submitButton.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
